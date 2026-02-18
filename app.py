@@ -119,10 +119,11 @@ elif menu == "📂 Batch Prediction":
 # ================= ANALYTICS =================
 elif menu == "📊 Fraud Analytics":
 
-    st.subheader("Fraud by Transaction Type")
+    st.subheader("Fraud Analytics Overview")
 
-    df = pd.read_csv("data/paysim.csv")
+    st.info("Analytics dashboard will display insights from live predictions.")
 
-    fraud_rate = df.groupby("type")["isFraud"].mean()
+    st.write("Model Type: XGBoost")
+    st.write("Number of Features:", len(trained_features))
+    st.write("SHAP Enabled: Yes")
 
-    st.bar_chart(fraud_rate)
