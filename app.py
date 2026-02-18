@@ -29,16 +29,11 @@ if menu == "🏠 Dashboard":
 
     st.subheader("System Overview")
 
-    df = pd.read_csv("data/paysim.csv")
-
-    total = len(df)
-    fraud = df["isFraud"].sum()
-
     col1, col2, col3 = st.columns(3)
 
-    col1.metric("Total Transactions", total)
-    col2.metric("Fraud Cases", fraud)
-    col3.metric("Fraud Rate", f"{(fraud/total)*100:.2f}%")
+    col1.metric("Model Type", "XGBoost")
+    col2.metric("Features Used", len(trained_features))
+    col3.metric("Status", "Active")
 
 # ================= SINGLE PREDICTION =================
 elif menu == "🔍 Single Prediction":
