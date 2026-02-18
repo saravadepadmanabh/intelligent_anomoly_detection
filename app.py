@@ -119,11 +119,83 @@ elif menu == "📂 Batch Prediction":
 # ================= ANALYTICS =================
 elif menu == "📊 Fraud Analytics":
 
-    st.subheader("Fraud Analytics Overview")
+    st.subheader("📊 Advanced Fraud Monitoring Dashboard")
 
-    st.info("Analytics dashboard will display insights from live predictions.")
+    file = st.file_uploader("Upload Transaction CSV", type=["csv"])
 
-    st.write("Model Type: XGBoost")
-    st.write("Number of Features:", len(trained_features))
-    st.write("SHAP Enabled: Yes")
+    if file is not None:
+
+        df = pd.read_csv(file)
+
+        processed = preprocess_input(df, trained_features)
+        scaled = scaler.transform(processed)
+
+        df["Risk Score"] = model.predict_proba(scaled)[:,1] * 100
+        df["Risk Category"] = df["Risk Score"].apply(categorize_risk)
+
+        st.success("Analysis Completed")
+
+        # ===================== BASIC METRICS =====================
+        total = len(df)
+        avg_risk = df["Risk Score"].mean()
+        high_risk = (df["Risk Category"] == "HIGH RISK").sum()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Transactions", total)
+        col2.metric("Average Risk Score", f"{avg_risk:.2f}%")
+        col3.metric("High Risk Transactions", high_risk)
+
+        # ===================== 1️⃣ RISK TREND OVER TIME =====================
+        if "step" in df.columns:
+            st.subheader("📈 Risk Trend Over Time")
+            trend = df.groupby("step")["Risk Score"].mean()
+            st.line_chart(trend)
+
+        # ===================== 2️⃣ ROLLING RISK INDEX =====================
+        st.subheader("📊 Fraud Pressure Index (Rolling Average)")
+        df["Rolling Risk"] = df["Risk Score"].rolling(window=20, min_periods=1).mean()
+        st.line_chart(df["Rolling Risk"])
+
+        # ===================== 3️⃣ TRANSACTION TYPE RISK HEATMAP =====================
+        if "type" in df.columns:
+            st.subheader("🔥 Risk by Transaction Type")
+            type_risk = df.groupby("type")["Risk Score"].mean()
+            st.bar_chart(type_risk)
+
+        # ===================== 4️⃣ HIGH RISK SPIKE DETECTION =====================
+        st.subheader("⚠️ High Risk Spike Detection")
+        threshold_spike = avg_risk + 2 * df["Risk Score"].std()
+        spikes = df[df["Risk Score"] > threshold_spike]
+
+        st.write(f"Dynamic Spike Threshold: {threshold_spike:.2f}%")
+        st.write(f"Spike Transactions Detected: {len(spikes)}")
+        st.dataframe(spikes.head(5))
+
+        # ===================== 5️⃣ EXPECTED VS HIGH RISK =====================
+        st.subheader("📊 Expected vs High Risk Comparison")
+
+        expected_normal = total - high_risk
+        comparison_df = pd.DataFrame({
+            "Category": ["Expected Normal", "High Risk"],
+            "Count": [expected_normal, high_risk]
+        })
+
+        st.bar_chart(comparison_df.set_index("Category"))
+
+        # ===================== 6️⃣ RISK THRESHOLD SIMULATOR =====================
+        st.subheader("🎯 Risk Threshold Simulator")
+
+        threshold = st.slider("Set Custom Risk Threshold", 0, 100, 70)
+
+        flagged = (df["Risk Score"] >= threshold).sum()
+
+        st.write(f"Transactions flagged at {threshold}% threshold: {flagged}")
+
+        # ===================== DOWNLOAD =====================
+        st.download_button(
+            "Download Full Analysis",
+            df.to_csv(index=False),
+            file_name="advanced_fraud_analysis.csv"
+        )
+
 
