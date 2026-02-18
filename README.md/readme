@@ -1,0 +1,4 @@
+This project implements a machine learning-based fraud detection system using XGBoost. 
+It predicts fraud probability for financial transactions, converts it into a risk score, 
+and provides feature-level explanations using SHAP. The system includes a Streamlit dashboard 
+for real-time transaction risk analysis and action recommendations.
